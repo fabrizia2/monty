@@ -1,138 +1,174 @@
-#include "monty.h"
+nclude "monty.h"
 
 /**
- * _push - adds an element to the stack
- *
- * @doubly: head of linked list
- * @cline: number of line
+ * push - Add node to the stack
+ * @stack: head of linkedlist
+ * @line_number: line number of the instruction
  *
  * Return;
  */
-void _push(stack_t **doubly, unsigned int cline)
+void push(stack_t **stack, unsigned int line_number)
 {
-	int p, u;
 
-	if (!vglo.arg)
+	int n = 0;
+
+	if (globalvar.token2 == NULL)
 	{
-		dprintf(2, "L%u: ", cline);
-		dprintf(2, "usage: push integer\n");
-		free_vglo();
-		exit(EXIT_FAILURE);
+		free_dlistint(*stack);
+		stderr_int(line_number);
 	}
-
-	for (u = 0; vglo.arg[u] != '\0'; u++)
+	if (!_isdigit() || stack == NULL)
 	{
-		if (!isdigit(vglo.arg[u]) && vglo.arg[u] != '-')
-		{
-			dprintf(2, "L%u: ", cline);
-			dprintf(2, "usage: push integer\n");
-			free_vglo();
-			exit(EXIT_FAILURE);
-		}
+		free_dlistint(*stack);
+		stderr_int(line_number);
 	}
-
-	p = atoi(vglo.arg);
-
-	if (vglo.lifo == 1)
-		add_dnodeint(doubly, p);
+	n = atoi(globalvar.token2);
+	if (*stack  == NULL)
+	{
+		create_node_stackfirst(stack, n);
+	}
 	else
-		add_dnodeint_end(doubly, p);
+	{
+		create_node_stackend(stack, n);
+	}
 }
 
 /**
- * _pall - prints all values on the stack from top
+ * pall - prints all the values on the stack from top
+ * @stack: head of linkedlist
+ * @line_number: line number of the instruction
  *
- * @doubly: head of the linked list
- * @cline: numbers of lines
  * Return;
  */
-
-void _pall(stack_t **doubly, unsigned int cline)
+void pall(stack_t **stack, unsigned int line_number)
 {
-	stack_t *aux;
-	(void)cline;
 
-	aux = *doubly;
+	stack_t *temp = NULL;
 
-	while (aux)
+
+	if (*stack == NULL)
 	{
-		printf("%d\n", aux->n);
-		aux = aux->next;
+		return;
+	}
+	if (*stack == NULL && line_number != 1)
+	{
+		free_dlistint(*stack);
+		free_globalvars();
+		exit(EXIT_SUCCESS);
+	}
+	temp = *stack;
+	while (temp->next != NULL)
+		temp = temp->next;
+	while (temp->prev != NULL)
+	{
+		printf("%d", temp->n);
+		temp = temp->prev;
+		printf("\n");
+	}
+	printf("%d\n", temp->n);
+}
+
+
+/**
+ * pint - prints the value at the top of the stack
+ * @stack: head of linkedlist
+ * @line_number: line number of the instruction
+ *
+ * Return;
+ */
+void pint(stack_t **stack, unsigned int line_number)
+{
+
+	stack_t *temp = NULL;
+
+	if (stack == NULL || *stack == NULL)
+	{
+		pint_e(line_number);
+		return;
+	}
+	temp = *stack;
+	while (temp->next != NULL)
+		temp = temp->next;
+
+	printf("%d", temp->n);
+	printf("\n");
+}
+
+/**
+ * pop -  removes the top element of the stack
+ * @stack: head of linkedlist
+ * @line_number: line number of the instruction
+ *
+ * Return;
+ */
+void pop(stack_t **stack, unsigned int line_number)
+{
+
+	stack_t *temp = NULL;
+	stack_t *temp2 = NULL;
+	int i = 0, j = 0, flag = 0;
+
+	if (stack == NULL)
+	{
+		free_dlistint(*stack);
+		pop_e(line_number); }
+	if (*stack == NULL)
+	{
+		free_dlistint(*stack);
+		pop_e(line_number); }
+	temp = *stack;
+	while (temp->next != NULL)
+	{
+		temp = temp->next;
+		i++;
+		flag = 1;
+	}
+	temp2 = *stack;
+	while (j < (i - 1))
+	{
+		temp2 = temp2->next;
+		j++;
+	}
+	if (i == 0 && flag == 0)
+	{
+
+		free(*stack);
+		*stack = NULL;
+		return;
+	}
+	else
+	{
+		temp2->next = NULL;
+		free(temp);
+		temp = NULL;
+		return;
 	}
 }
 
 /**
- * _pint - prints the value at the top of the stack
+ * swap - swaps the top two elements of the stack.
+ * @stack: head of linkedlist
+ * @line_number: line number of the instruction
  *
- * @doubly: head of the linked list
- * @cline: line number
- * Return: no return
+ * Return;
  */
-void _pint(stack_t **doubly, unsigned int cline)
+void swap(stack_t **stack, unsigned int line_number)
 {
-	(void)cline;
+	stack_t *temp;
+	int i, j;
 
-	if (*doubly == NULL)
+	if (*stack == NULL || stack == NULL)
+		op_e(line_number, "swap");
+
+	temp = (*stack)->next;
+	if ((*stack)->next == NULL)
+		op_e(line_number, "swap");
+	while (temp->next != NULL)
 	{
-		dprintf(2, "L%u: ", cline);
-		dprintf(2, "can't pint, stack empty\n");
-		free_vglo();
-		exit(EXIT_FAILURE);
+		temp = temp->next;
 	}
-
-	printf("%d\n", (*doubly)->n);
-}
-
-/**
- * _pop - removes the top element of the stack
- *
- * @doubly: head of the linked list
- * @cline: line number
- * Return: no return
- */
-void _pop(stack_t **doubly, unsigned int cline)
-{
-	stack_t *aux;
-
-	if (doubly == NULL || *doubly == NULL)
-	{
-		dprintf(2, "L%u: can't pop an empty stack\n", cline);
-		free_vglo();
-		exit(EXIT_FAILURE);
-	}
-	aux = *doubly;
-	*doubly = (*doubly)->next;
-	free(aux);
-}
-
-/**
- * _swap - swaps the top two elements of the stack
- *
- * @doubly: head of the linked list
- * @cline: line number
- * Return: no return
- */
-void _swap(stack_t **doubly, unsigned int cline)
-{
-	int m = 0;
-	stack_t *aux = NULL;
-
-	aux = *doubly;
-
-	for (; aux != NULL; aux = aux->next, m++)
-		;
-
-	if (m < 2)
-	{
-		dprintf(2, "L%u: can't swap, stack too short\n", cline);
-		free_vglo();
-		exit(EXIT_FAILURE);
-	}
-
-	aux = *doubly;
-	*doubly = (*doubly)->next;
-	aux->next = (*doubly)->next;
-	aux->prev = *doubly;
-	(*doubly)->next = aux;
-	(*doubly)->prev = NULL;
+	i = temp->n;
+	j = temp->prev->n;
+	temp->n = j;
+	temp->prev->n = i;
 }
